@@ -4,6 +4,7 @@ from flask import Flask, render_template
 
 GENDERIZE_URL = "https://api.genderize.io"
 AGIFY_URL = "https://api.agify.io"
+NPOINT_URL = "https://api.npoint.io/c790b4d5cab58020d391"
 
 app = Flask(__name__)
 
@@ -29,6 +30,14 @@ def guess(name):
     age = agify_response.json()["age"]
 
     return render_template("guess.html", name=name, gender=gender, age=age)
+
+
+@app.route("/blog")
+def blog():
+    response = requests.get(url=NPOINT_URL)
+    response.raise_for_status()
+    data = response.json()
+    return render_template("blog.html", posts=data)
 
 
 if __name__ == "__main__":
