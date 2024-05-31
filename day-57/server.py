@@ -32,8 +32,9 @@ def guess(name):
     return render_template("guess.html", name=name, gender=gender, age=age)
 
 
-@app.route("/blog")
-def blog():
+@app.route("/blog/<num>")
+def get_blog(num):
+    print(num)
     response = requests.get(url=NPOINT_URL)
     response.raise_for_status()
     data = response.json()
