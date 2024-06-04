@@ -27,7 +27,12 @@ def about():
 
 @app.route("/post/<int:pid>")
 def post(pid):
-    return render_template("post.html", post=data[pid - 1])
+    clicked_post = None
+    for item in data:
+        if item["id"] == pid:
+            clicked_post = item
+
+    return render_template("post.html", post=clicked_post)
 
 
 if __name__ == "__main__":
