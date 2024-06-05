@@ -13,7 +13,7 @@ data = response.json()
 
 @app.route('/')
 def home():
-    return render_template("index_old.html", blog_posts=data)
+    return render_template("index.html", blog_posts=data)
 
 
 @app.route("/post/<int:pid>")

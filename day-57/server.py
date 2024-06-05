@@ -13,7 +13,7 @@ app = Flask(__name__)
 def home():
     number = random.randint(1, 10)
     current_year = datetime.now().year
-    return render_template("index_old.html", num=number, year=current_year)
+    return render_template("index.html", num=number, year=current_year)
 
 
 @app.route("/guess/<name>")
