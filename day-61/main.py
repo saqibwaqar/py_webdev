@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request
 from flask_wtf import FlaskForm, CSRFProtect
-from wtforms.fields.simple import StringField
-from wtforms.validators import DataRequired
+from wtforms import validators
+from wtforms.fields.simple import StringField, SubmitField, PasswordField
+from wtforms.validators import DataRequired, ValidationError
 
 '''
 Red underlines? Install the required packages first: 
@@ -18,8 +19,9 @@ This will install the packages from requirements.txt for this project.
 
 
 class LoginForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired()])
-    password = StringField('Password', validators=[DataRequired()])
+    email = StringField(label='Email', validators=[DataRequired(), validators.Email()])
+    password = PasswordField(label='Password', validators=[DataRequired(), validators.Length(min=8)])
+    submit = SubmitField(label="Log In")
 
 
 app = Flask(__name__)
@@ -34,12 +36,14 @@ def home():
 @app.route("/login", methods=["POST", "GET"])
 def login():
     login_form = LoginForm()
-    # print(request.method)
 
-    if request.method == "POST":
-        return render_template('login.html')
-    else:
-        return render_template('login.html', form=login_form)
+    if login_form.validate_on_submit():
+        if login_form.email.data == "admin@email.com" and login_form.password.data == "12345678":
+            return render_template('success.html')
+        else:
+            return render_template('denied.html')
+
+    return render_template('login.html', form=login_form)
 
 
 if __name__ == '__main__':
