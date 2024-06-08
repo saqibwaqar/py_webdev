@@ -4,21 +4,46 @@
 {% block content %}
 
 <div class="container">
-  <div class="row">
-    <div class="col-sm-12">
+    <div class="row">
+        <div class="col-sm-12">
 
-      <h1>All Cafes</h1>
+            <h1>All Cafes</h1>
 
-	  <table class="table table-dark table-striped table-hover">
-          <!-- This is where you will write the code to render a Bootstrap 
-          Table that contains all the information from the 
-          cafe-data.csv file. -->
-  	  </table>
+            <table class="table table-dark table-striped table-hover">
+                <!-- This is where you will write the code to render a Bootstrap
+                Table that contains all the information from the
+                cafe-data.csv file. -->
+                <thead>
+                <tr>
+                    {% for item in cafes[0] %}
+                    <th scope="col">{{ item }}</th>
+                    {% endfor %}
 
-      <p><a href="#">Return to index page</a></p>
+                </tr>
+                </thead>
 
+                <tbody>
+
+                {% for row in cafes[1:] %}
+                <tr>
+                    {% for item in row %}
+
+                    <td>{{ item }}</td>
+
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+
+
+                </tbody>
+
+
+            </table>
+
+            <p><a href="#">Return to index page</a></p>
+
+        </div>
     </div>
-  </div>
 </div>
 
 {% endblock %}
