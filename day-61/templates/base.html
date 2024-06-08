@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}{% endblock %}</title>
-    <style>
-        {% block styling %}
-        body{
-            background: purple;
-        }
-        {% endblock %}
-    </style>
+
+    {% block styles %}
+    <!-- Bootstrap CSS -->
+    {{ bootstrap.load_css() }}
+    {% endblock %}
+
 </head>
 <body>
 {% block content %}{% endblock %}
 </body>
 </html>
+

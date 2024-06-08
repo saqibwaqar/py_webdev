@@ -1,8 +1,10 @@
-from flask import Flask, render_template, request
-from flask_wtf import FlaskForm, CSRFProtect
+from flask import Flask
+from flask import render_template
+from flask_bootstrap import Bootstrap5
+from flask_wtf import FlaskForm
 from wtforms import validators
 from wtforms.fields.simple import StringField, SubmitField, PasswordField
-from wtforms.validators import DataRequired, ValidationError
+from wtforms.validators import DataRequired
 
 '''
 Red underlines? Install the required packages first: 
@@ -26,6 +28,7 @@ class LoginForm(FlaskForm):
 
 app = Flask(__name__)
 app.secret_key = "some secret string"
+bootstrap = Bootstrap5(app)
 
 
 @app.route("/")
