@@ -7,12 +7,14 @@
 <body>
 <h1>My Library</h1>
 
-{% if all_books|length == 0 %}
+{% if not all_books %}
 <p>Library is empty.</p>
 {% endif %}
 <ul>
     {% for book in all_books %}
-    <li>{{ book.title }} - {{ book.author }} - {{ book.rating }}/10</li>
+    <li><a href="{{ url_for('delete', bid=book.id) }}">Delete </a>{{ book.title }} - {{ book.author }} - {{ book.rating
+        }}/10 <a href="{{ url_for('edit', bid=book.id) }}">Edit
+            Rating</a></li>
     {% endfor %}
 </ul>
 
