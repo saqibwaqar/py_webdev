@@ -1,8 +1,10 @@
+import os
+
 from flask import Flask, render_template, redirect, url_for, request
 from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import Integer, String, Float
+from sqlalchemy import Integer, String, Float, desc
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.fields.numeric import FloatField
@@ -11,8 +13,11 @@ from wtforms.form import Form
 from wtforms.validators import DataRequired
 import requests
 
-url = "https://api.themoviedb.org/3/search/movie"
-API_KEY = "06f85a23d77b3a7465dd3df65f993da3"
+MOVIE_DB_URL = "https://api.themoviedb.org/3/search/movie"
+MOVIE_DB_MOVIE_URL = "https://api.themoviedb.org/3/movie"
+MOVIE_DB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
+
+API_KEY = os.environ.get("API_KEY")
 
 '''
 Red underlines? Install the required packages first: 
@@ -98,9 +103,15 @@ class AddMovieForm(FlaskForm):
 @app.route("/")
 def home():
     with app.app_context():
-        result = db.session.execute(db.select(Movie))
+        result = db.session.execute(db.select(Movie).order_by(desc(Movie.rating)))
         all_movies = result.scalars().all()
-    return render_template("index.html", all_movies=all_movies)
+
+        for i in range(len(all_movies)):
+            all_movies[i].ranking = len(all_movies) - i
+
+        db.session.commit()
+
+        return render_template("index.html", all_movies=all_movies)
 
 
 @app.route("/edit", methods=["GET", "POST"])
@@ -138,7 +149,7 @@ def add():
             "page": 1
 
         }
-        response = requests.get(url, params=params)
+        response = requests.get(url=MOVIE_DB_URL, params=params)
         results = response.json()['results']
         return render_template('select.html', results=results)
 
@@ -147,18 +158,27 @@ def add():
 
 @app.route("/get-movie-details", methods=["GET"])
 def get_movie_details():
-    id = request.args.get("id")
-    params = {
-        "api_key": API_KEY,
-        "movie_id": id,
-        "language": "en-US"
+    movie_id = request.args.get("id")
+    if movie_id:
+        movie_details_url = f"{MOVIE_DB_MOVIE_URL}/{movie_id}"
+        params = {
+            "api_key": API_KEY,
+            "language": "en-US"
 
-    }
-    response = requests.get(url, params=params)
-    results = response.json()['results']
-    return render_template('select.html', results=results)
+        }
 
-    return redirect(url_for('home'))
+        response = requests.get(url=movie_details_url, params=params)
+        results = response.json()
+        title = results['title']
+        img_url = f"{MOVIE_DB_IMAGE_BASE_URL}{results['poster_path']}"
+        year = int(results['release_date'].split('-')[0])
+        description = results['overview']
+
+        movie = Movie(title=title, img_url=img_url, year=year, description=description)
+        db.session.add(movie)
+        db.session.commit()
+
+        return redirect(url_for('edit', mid=movie.id))
 
 
 if __name__ == '__main__':

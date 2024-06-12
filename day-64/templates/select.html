@@ -9,7 +9,7 @@
     {% for result in results %}
 
     <p>
-        <a href="{{ url_for('get_movie_details', id=result['id']) }}"> {{ result['original_title'] }} - {{
+        <a href="{{ url_for('get_movie_details', id=result['id']) }}"> {{ result['title'] }} - {{
             result['release_date'] }}</a>
     </p>
     {% endfor %}
