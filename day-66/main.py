@@ -3,7 +3,7 @@ import random
 from flask import Flask, jsonify, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import Integer, String, Boolean
+from sqlalchemy import Integer, String, Boolean, exists
 
 '''
 Install the required packages first: 
@@ -96,6 +96,75 @@ def get_random_cafe():
     # HTTP PUT/PATCH - Update Record
 
     # HTTP DELETE - Delete Record
+
+
+@app.route("/all", methods=["GET"])
+def get_all_cafes():
+    all_cafes = db.session.execute(db.select(Cafe).order_by(Cafe.name)).scalars().all()
+    return jsonify(cafes=[cafe.to_dict() for cafe in all_cafes])
+
+
+@app.route("/search", methods=["GET"])
+def get_cafes_at_location():
+    location = request.args.get('loc')
+    all_cafes = db.session.execute(db.select(Cafe).where(Cafe.location == location)).scalars().all()
+
+    if all_cafes:
+        return jsonify(cafes=[cafe.to_dict() for cafe in all_cafes])
+    else:
+        return jsonify(error={"Not Found": "Sorry, we don't have a cafe at that location."}), 404
+
+
+@app.route("/add", methods=["POST"])
+def post_new_cafe():
+    new_cafe = Cafe(
+        name=request.form.get("name"),
+        map_url=request.form.get("map_url"),
+        img_url=request.form.get("img_url"),
+        location=request.form.get("loc"),
+        has_sockets=bool(request.form.get("sockets")),
+        has_toilet=bool(request.form.get("toilet")),
+        has_wifi=bool(request.form.get("wifi")),
+        can_take_calls=bool(request.form.get("calls")),
+        seats=request.form.get("seats"),
+        coffee_price=request.form.get("coffee_price"),
+    )
+    db.session.add(new_cafe)
+    db.session.commit()
+    return jsonify(response={"success": "Successfully added the new cafe."})
+
+
+# Updating the price of a cafe based on a particular id:
+# http://127.0.0.1:5000/update-price/CAFE_ID?new_price=£5.67
+@app.route("/update-price/<int:cafe_id>", methods=["PATCH"])
+def patch_new_price(cafe_id):
+    new_price = request.args.get("new_price")
+    is_record = db.session.query(exists().where(Cafe.id == cafe_id)).scalar()
+    if is_record:
+        cafe = db.get_or_404(Cafe, cafe_id)
+        cafe.coffee_price = new_price
+        db.session.commit()
+        ## Just add the code after the jsonify method. 200 = Ok
+        return jsonify(response={"success": "Successfully updated the price."}), 200
+    else:
+        # 404 = Resource not found
+        return jsonify(error={"Not Found": "Sorry a cafe with that id was not found in the database."}), 404
+
+
+# Deletes a cafe with a particular id. Change the request type to "Delete" in Postman
+@app.route("/report-closed/<int:cafe_id>", methods=["DELETE"])
+def delete_cafe(cafe_id):
+    api_key = request.args.get("api-key")
+    if api_key == "TopSecretAPIKey":
+        cafe = db.session.get(Cafe, cafe_id)
+        if cafe:
+            db.session.delete(cafe)
+            db.session.commit()
+            return jsonify(response={"success": "Successfully deleted the cafe from the database."}), 200
+        else:
+            return jsonify(error={"Not Found": "Sorry a cafe with that id was not found in the database."}), 404
+    else:
+        return jsonify(error={"Forbidden": "Sorry, that's not allowed. Make sure you have the correct api_key."}), 403
 
 
 if __name__ == '__main__':
